@@ -15,6 +15,9 @@ Inventory & history so teams can see progress over time
 
 https://youtu.be/e4xyw4vmvQc
 
+## Architecture
+![alt text](image-5.png)
+
 
 # On Board Model
 ![alt text](image.png)
