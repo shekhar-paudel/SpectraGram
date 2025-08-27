@@ -10,6 +10,12 @@ Apples-to-apples comparisons across providers/models/versions
 
 Inventory & history so teams can see progress over time
 
+
+## Demo
+
+https://youtu.be/e4xyw4vmvQc
+
+
 # On Board Model
 ![alt text](image.png)
 
