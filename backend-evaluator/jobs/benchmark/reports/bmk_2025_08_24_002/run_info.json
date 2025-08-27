@@ -1,0 +1,12 @@
+{
+  "job_run_id": 4,
+  "benchmark_id": "bmk_2025_08_24_002",
+  "provider_id": 1,
+  "provider": "openai",
+  "model_id": 1,
+  "model": "whisper-1",
+  "eval_version": "v1",
+  "status": "completed",
+  "started_at": "2025-08-24T08:52:58.025885",
+  "ended_at": "2025-08-24T08:59:22.663934"
+}

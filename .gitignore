@@ -1,0 +1,11 @@
+**/*.db
+
+.env.development
+.env.production
+venv/
+.venv
+node_modules/
+data/
+**/data
+backend-evaluator/jobs/benchmark/jobs/deepgram_librispeech.json
+backend-evaluator/jobs/benchmark/jobs/openai_librispeech.json

@@ -1,0 +1,12 @@
+{
+  "job_run_id": 2,
+  "benchmark_id": "de_bmk_2025_08_25_062641_stt_deepgram_nova_3",
+  "provider_id": 2,
+  "provider": "deepgram",
+  "model_id": 2,
+  "model": "nova-3",
+  "eval_version": "v1",
+  "status": "completed",
+  "started_at": "2025-08-25T06:26:44.252386",
+  "ended_at": "2025-08-25T07:02:54.428575"
+}

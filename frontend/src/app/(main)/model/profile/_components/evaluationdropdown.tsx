@@ -1,0 +1,150 @@
+"use client";
+
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { ChevronsUpDown, Search } from "lucide-react";
+
+/** Dummy fetch for now — replace with API later */
+async function fetchEvaluationList(signal?: AbortSignal): Promise<string[]> {
+  // Simulate async; swap with fetch("/api/evaluation_list", { signal }) later
+  await new Promise((r) => setTimeout(r, 0));
+  return ["v1", "v2"];
+}
+
+/** tiny fuzzy top-10 */
+function fuzzyTop(ids: string[], query: string, limit = 10): string[] {
+  if (!query.trim()) return ids.slice(0, limit);
+  const q = query.toLowerCase();
+  const scored = ids.map((id) => {
+    const s = id.toLowerCase();
+    const idx = s.indexOf(q);
+    if (idx >= 0) return { id, score: idx + s.length * 0.001 };
+    let i = 0, j = 0, gaps = 0, last = -1;
+    while (i < s.length && j < q.length) {
+      if (s[i] === q[j]) {
+        if (last >= 0) gaps += i - last - 1;
+        last = i; j++;
+      }
+      i++;
+    }
+    const missPenalty = (q.length - j) * 10;
+    const gapPenalty = gaps * 0.1;
+    return { id, score: 1000 + missPenalty + gapPenalty + s.length * 0.001 };
+  });
+  return scored.sort((a, b) => a.score - b.score).slice(0, limit).map((x) => x.id);
+}
+
+export default function EvaluationDropdown({
+  value,
+  onChange,
+}: {
+  value: string | null;
+  onChange: (id: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState("");
+  const [allIds, setAllIds] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  // Load list once
+  React.useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
+    (async () => {
+      try {
+        setLoading(true);
+        const ids = await fetchEvaluationList(controller.signal);
+        if (!active) return;
+        setAllIds(ids);
+        if (!value && ids.length) onChange(ids[0]);
+        setError(null);
+      } catch (e: any) {
+        if (e?.name === "AbortError" || /aborted/i.test(e?.message)) return;
+        if (!active) return;
+        setError(e?.message || "Failed to load evaluations");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const top = React.useMemo(() => fuzzyTop(allIds, query, 10), [allIds, query]);
+
+  return (
+    <div className="w-full flex justify-center">
+      <div className="w-full max-w-xs">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              role="combobox"
+              className="w-full justify-between"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <Search className="h-4 w-4 opacity-70" />
+                <span className="truncate">
+                  {loading
+                    ? "Loading evaluations…"
+                    : value || (error ? "Error loading evaluations" : "Select an evaluation")}
+                </span>
+              </div>
+              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-70" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-[var(--radix-popover-trigger-width)] p-0"
+            align="center"
+          >
+            <Command>
+              <CommandInput
+                placeholder="Search evaluations…"
+                value={query}
+                onValueChange={setQuery}
+              />
+              <CommandEmpty>No evaluations found.</CommandEmpty>
+              <CommandList>
+                <CommandGroup heading="Top matches">
+                  {top.map((id) => (
+                    <CommandItem
+                      key={id}
+                      value={id}
+                      onSelect={() => {
+                        onChange(id);
+                        setOpen(false);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      {id}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+}
